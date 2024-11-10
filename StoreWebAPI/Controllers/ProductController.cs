@@ -21,7 +21,7 @@ public class ProductController : ControllerBase
     //Create
     [HttpPost("add")]
     [ProducesResponseType(typeof(Product),StatusCodes.Status201Created)]
-    public async Task<ActionResult<Product>> AddNewProduct([FromBody] ProductDto productDto)
+    public async Task<ActionResult<Product>> AddNewProduct([FromBody] ProductDto productDto, [FromServices] IProductCategoryRepository categoryRepository)
     {
         if (!ModelState.IsValid)
         {
@@ -34,7 +34,7 @@ public class ProductController : ControllerBase
                 Description = productDto.Description,
                 Price = productDto.Price,
                 CategoryId = productDto.CategoryId,
-            });
+            }, categoryRepository);
 
         if (newProduct == null)
         {
@@ -64,9 +64,10 @@ public class ProductController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var updatedProduct = await _productService.UpdateProductAsync(id
-            , new Product()
+        var updatedProduct = await _productService.UpdateProductAsync(
+            new Product()
             {
+                Id = id,
                 Name = productDto.Name,
                 Description = productDto.Description,
                 Price = productDto.Price,

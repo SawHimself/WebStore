@@ -29,19 +29,20 @@ public class ProductCategoryService : IProductCategoryService
         var efCategory = await _repository.GetProductCategoriesAsync();
         return efCategory.Select(ProductCategoryMapper.ToEntities).ToList();
     }
-    public async Task<ProductCategory?> UpdateProductCategoryAsync(int categoryId, ProductCategory category)
+    public async Task<ProductCategory?> UpdateProductCategoryAsync(ProductCategory category)
     {
-        var oldCategory = await _repository.GetOriginalAsync(categoryId);
-        
+        var oldCategory = await _repository.GetOriginalAsync(category.Id);
         if (oldCategory == null)
         {
-            throw new KeyNotFoundException($"Category with ID {categoryId} not found.");
+            throw new KeyNotFoundException($"Category with ID {category.Id} not found.");
         }
         
-        UpdateCategoryFields(ProductCategoryMapper.ToEntities(oldCategory), category);
-
+        oldCategory.Name = category.Name;
+        oldCategory.Description = category.Description;
+        
         var updatedCategory =
-            ProductCategoryMapper.ToEntities(await _repository.UpdateProductCategoryAsync(oldCategory));
+            ProductCategoryMapper.ToEntities(
+                await _repository.UpdateProductCategoryAsync(oldCategory));
         
         _logger.LogInfo($"Updated ProductCategory: {updatedCategory.Id}, {updatedCategory.Name}");
         
@@ -62,13 +63,5 @@ public class ProductCategoryService : IProductCategoryService
         _logger.LogInfo($"Deleted ProductCategory: {deletedCategory.Id}, {deletedCategory.Name}");
         
         return deletedCategory;
-    }
-    
-    private static void UpdateCategoryFields(ProductCategory existingCategory, ProductCategory newCategory)
-    {
-        if(!string.IsNullOrWhiteSpace(existingCategory.Name))
-            existingCategory.Name = newCategory.Name;
-        if(!string.IsNullOrWhiteSpace(existingCategory.Description))
-            existingCategory.Description = newCategory.Description;
     }
 }

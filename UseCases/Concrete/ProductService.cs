@@ -16,8 +16,13 @@ public class ProductService : IProductService
         _logger = logger;
     }
 
-    public async Task<Product?> CreateProductAsync(Product newProduct)
+    public async Task<Product?> CreateProductAsync(Product newProduct, IProductCategoryRepository categoryRepository)
     {
+        var oldCategory = await categoryRepository.GetOriginalAsync(newProduct.CategoryId);
+        if (oldCategory == null)
+        {
+            throw new KeyNotFoundException($"Category with ID {newProduct.CategoryId} not found.");
+        }
         var addedProduct = ProductMapper.ToEntity(await _repository.CreateProductAsync(ProductMapper.ToEfProduct(newProduct)));
         _logger.LogInfo($"Created Product: {addedProduct.Id}, {addedProduct.Name}");
         return addedProduct;
@@ -39,13 +44,12 @@ public class ProductService : IProductService
         return productsPaginated.Select(ProductMapper.ToEntity).ToList();
     }
 
-    public async Task<Product?> UpdateProductAsync(int productId, Product updatedProduct, IProductCategoryRepository categoryRepository)
+    public async Task<Product?> UpdateProductAsync(Product updatedProduct, IProductCategoryRepository categoryRepository)
     {
-        var oldProduct =  await _repository.GetOriginalAsync(productId);
-        
+        var oldProduct =  await _repository.GetOriginalAsync(updatedProduct.Id);
         if (oldProduct == null)
         {
-            throw new KeyNotFoundException($"Product with ID {productId} not found.");
+            throw new KeyNotFoundException($"Product with ID {updatedProduct.Id} not found.");
         }
         
         var oldCategory = await categoryRepository.GetOriginalAsync(updatedProduct.CategoryId);
@@ -54,8 +58,10 @@ public class ProductService : IProductService
             throw new KeyNotFoundException($"Category with ID {updatedProduct.CategoryId} not found.");
         }
         
-        
-        UpdateProductFields(ProductMapper.ToEntity(oldProduct), updatedProduct);
+        oldProduct.Name = updatedProduct.Name;
+        oldProduct.Description = updatedProduct.Description;
+        oldProduct.Price = updatedProduct.Price;
+        oldProduct.CategoryId = updatedProduct.CategoryId;
         
         var result = ProductMapper.ToEntity(await _repository.UpdateProductAsync(oldProduct));
         _logger.LogInfo($"Updated Product: {updatedProduct.Id}, {updatedProduct.Name}");
@@ -76,15 +82,5 @@ public class ProductService : IProductService
         
         _logger.LogInfo($"Deleted Product: {originalProduct.Id}, {originalProduct.Name}");
         return deletedProduct;
-    }
-    
-    private static void UpdateProductFields(Product existingProduct, Product newProduct)
-    {
-        if(!string.IsNullOrEmpty(newProduct.Name))
-            existingProduct.Name = newProduct.Name;
-        if(!string.IsNullOrEmpty(newProduct.Description))
-            existingProduct.Description = newProduct.Description;
-        existingProduct.Price = newProduct.Price;
-        existingProduct.CategoryId = newProduct.CategoryId;
     }
 }

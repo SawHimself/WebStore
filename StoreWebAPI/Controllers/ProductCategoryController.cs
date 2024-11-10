@@ -62,8 +62,9 @@ public class ProductCategoryController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var updatedCategory = await _categoryService.UpdateProductCategoryAsync(id, new ProductCategory()
+        var updatedCategory = await _categoryService.UpdateProductCategoryAsync(new ProductCategory()
         {
+            Id = id,
             Name = categoryDto.Name,
             Description = categoryDto.Description,
         });
