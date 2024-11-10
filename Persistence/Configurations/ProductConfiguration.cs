@@ -1,4 +1,4 @@
-using Entities;
+using Persistence.EfClasses;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

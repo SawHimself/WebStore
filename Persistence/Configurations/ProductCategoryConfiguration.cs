@@ -1,6 +1,6 @@
-using Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Persistence.EfClasses;
 
 namespace Persistence.Configurations;
 

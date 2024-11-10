@@ -1,4 +1,4 @@
-using Entities;
+using Persistence.EfClasses;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Repository.Concrete;
@@ -6,7 +6,6 @@ namespace Persistence.Repository.Concrete;
 public class ProductCategoryRepository : IProductCategoryRepository
 {
     private readonly AppDbContext _context;
-    
     public ProductCategoryRepository(AppDbContext context)
     {
         _context = context;

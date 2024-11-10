@@ -33,6 +33,8 @@ var app = builder.Build();
 // Logging
 LogManager.Setup().LoadConfigurationFromFile("nlog.config").GetCurrentClassLogger();
 var logger = app.Services.GetRequiredService<ILoggerManager>();
+
+// Exception handling
 app.ConfigureExceptionHandler(logger);
 
 // Configure the HTTP request pipeline.

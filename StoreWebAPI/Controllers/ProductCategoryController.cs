@@ -7,8 +7,6 @@ namespace StoreWebAPI.Controllers;
 
 [Route("product_category")]
 [ApiController]
-[ProducesResponseType(StatusCodes.Status200OK)]
-//[ProducesResponseType(typeof(ErrorDetails), StatusCodes.Status400BadRequest)]
 [ProducesResponseType(StatusCodes.Status500InternalServerError)] 
 public class ProductCategoryController : ControllerBase
 {
@@ -21,6 +19,7 @@ public class ProductCategoryController : ControllerBase
     
     //Create
     [HttpPost("add")]
+    [ProducesResponseType( typeof(ProductCategory),StatusCodes.Status201Created)]
     public async Task<ActionResult<ProductCategory>> AddNewCategory([FromBody] ProductCategoryDto categoryDto)
     {
         if (!ModelState.IsValid)
@@ -45,6 +44,7 @@ public class ProductCategoryController : ControllerBase
     
     //Read
     [HttpGet("get")]
+    [ProducesResponseType(typeof(ProductCategory), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ProductCategory>>> GetCategories()
     {
         var categories = await _categoryService.GetProductCategoriesAsync();
@@ -53,6 +53,8 @@ public class ProductCategoryController : ControllerBase
     
     //Update
     [HttpPut("update/{id:int}")]
+    [ProducesResponseType(typeof(ProductCategory), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProductCategory>> UpdateCategory(int id, [FromBody] ProductCategoryDto categoryDto)
     {
         if (!ModelState.IsValid)
@@ -75,6 +77,8 @@ public class ProductCategoryController : ControllerBase
     
     //Delete
     [HttpDelete("delete/{id:int}")]
+    [ProducesResponseType(typeof(ProductCategory), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProductCategory>> DeleteCategory(int id)
     {
         var deletedCategory = await _categoryService.DeleteProductCategoryAsync(id);
@@ -82,6 +86,6 @@ public class ProductCategoryController : ControllerBase
         {
             return StatusCode(500, $"Unknown error when deleting Category with identifier {id}."); 
         }
-        return deletedCategory;
+        return Ok(deletedCategory);
     }
 }

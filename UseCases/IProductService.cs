@@ -1,5 +1,5 @@
 using Entities;
-using Persistence;
+using Persistence.Repository;
 
 namespace UseCases;
 
@@ -14,6 +14,6 @@ public interface IProductService
         int? category, 
         decimal? minPrice, 
         decimal? maxPrice);
-    public Task<Product?> UpdateProductAsync(int productId, Product product);
+    public Task<Product?> UpdateProductAsync(int productId, Product product, IProductCategoryRepository productCategoryRepository);
     public Task<Product?> DeleteProductAsync(int productId);
 }

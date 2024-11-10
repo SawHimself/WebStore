@@ -29,6 +29,15 @@ public static class ExceptionMiddlewareExtensions
                             Message = argumentException.Message,
                         }.ToString());
                     }
+                    else if (contextFeature.Error is KeyNotFoundException keyNotFoundException)
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                        await context.Response.WriteAsync(new ErrorDetails()
+                        {
+                            StatusCode = (int)HttpStatusCode.BadRequest,
+                            Message = keyNotFoundException.Message,
+                        }.ToString());
+                    }
                     else
                     {
                         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

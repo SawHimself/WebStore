@@ -8,8 +8,6 @@ namespace StoreWebAPI.Controllers;
 
 [Route("product")]
 [ApiController]
-[ProducesResponseType(StatusCodes.Status200OK)]
-//[ProducesResponseType(typeof(ErrorDetails), StatusCodes.Status400BadRequest)]
 [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)] 
 public class ProductController : ControllerBase
 {
@@ -22,6 +20,7 @@ public class ProductController : ControllerBase
     
     //Create
     [HttpPost("add")]
+    [ProducesResponseType(typeof(Product),StatusCodes.Status201Created)]
     public async Task<ActionResult<Product>> AddNewProduct([FromBody] ProductDto productDto)
     {
         if (!ModelState.IsValid)
@@ -47,6 +46,7 @@ public class ProductController : ControllerBase
     
     //Read
     [HttpGet("get")]
+    [ProducesResponseType(typeof(Product), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<Product>>> GetProducts()
     {
         var products = await _productService.GetProductsAsync();
@@ -55,20 +55,24 @@ public class ProductController : ControllerBase
     
     //Update
     [HttpPut("update/{id:int}")]
-    public async Task<ActionResult<Product>> UpdateProduct(int id, [FromBody] ProductDto productDto)
+    [ProducesResponseType(typeof(Product), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<Product>> UpdateProduct(int id, [FromBody] ProductDto productDto, [FromServices] IProductCategoryRepository categoryRepository)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var updatedProduct = await _productService.UpdateProductAsync(id, new Product()
-        {
-            Name = productDto.Name,
-            Description = productDto.Description,
-            Price = productDto.Price,
-            CategoryId = productDto.CategoryId,
-        });
+        var updatedProduct = await _productService.UpdateProductAsync(id
+            , new Product()
+            {
+                Name = productDto.Name,
+                Description = productDto.Description,
+                Price = productDto.Price,
+                CategoryId = productDto.CategoryId,
+            }
+            , categoryRepository);
     
         if (updatedProduct == null)
         {
@@ -79,6 +83,8 @@ public class ProductController : ControllerBase
     
     //Delete
     [HttpDelete("delete/{id:int}")]
+    [ProducesResponseType(typeof(Product), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Product>> DeleteProduct(int id)
     {
         var deletedProduct = await _productService.DeleteProductAsync(id);
@@ -86,6 +92,6 @@ public class ProductController : ControllerBase
         {
             return StatusCode(500, $"Unknown error when deleting product with identifier {id}."); 
         }
-        return deletedProduct;
+        return Ok(deletedProduct);
     }
 }

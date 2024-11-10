@@ -1,4 +1,4 @@
-using Entities;
+using Persistence.EfClasses;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Repository.Concrete;

@@ -1,25 +1,33 @@
 using Entities;
 using Persistence.Repository;
+using Services.Logging;
+using Services.Mappers;
 
 namespace UseCases.Concrete;
 
 public class ProductCategoryService : IProductCategoryService
 {
     private readonly IProductCategoryRepository _repository;
+    private readonly ILoggerManager _logger;
 
-    public ProductCategoryService(IProductCategoryRepository repository)
+    public ProductCategoryService(IProductCategoryRepository repository, ILoggerManager logger)
     {
         _repository = repository;
+        _logger = logger;
     }
     
     public async Task<ProductCategory?> CreateProductCategoryAsync(ProductCategory newProductCategory)
     {
-        return await _repository.CreateProductCategoryAsync(newProductCategory);
+        var addedCategory = ProductCategoryMapper.ToEntities(
+            await _repository.CreateProductCategoryAsync(ProductCategoryMapper.ToEfProduct(newProductCategory)));
+        _logger.LogInfo($"Created ProductCategory: {addedCategory.Id}, {addedCategory.Name}");
+        return addedCategory;
     }
 
     public async Task<List<ProductCategory>?> GetProductCategoriesAsync()
     {
-        return await _repository.GetProductCategoriesAsync();
+        var efCategory = await _repository.GetProductCategoriesAsync();
+        return efCategory.Select(ProductCategoryMapper.ToEntities).ToList();
     }
     public async Task<ProductCategory?> UpdateProductCategoryAsync(int categoryId, ProductCategory category)
     {
@@ -30,9 +38,14 @@ public class ProductCategoryService : IProductCategoryService
             throw new KeyNotFoundException($"Category with ID {categoryId} not found.");
         }
         
-        UpdateCategoryFields(oldCategory, category);
+        UpdateCategoryFields(ProductCategoryMapper.ToEntities(oldCategory), category);
+
+        var updatedCategory =
+            ProductCategoryMapper.ToEntities(await _repository.UpdateProductCategoryAsync(oldCategory));
         
-        return await _repository.UpdateProductCategoryAsync(oldCategory);
+        _logger.LogInfo($"Updated ProductCategory: {updatedCategory.Id}, {updatedCategory.Name}");
+        
+        return updatedCategory;
     }
 
     public async Task<ProductCategory?> DeleteProductCategoryAsync(int categoryId)
@@ -42,13 +55,20 @@ public class ProductCategoryService : IProductCategoryService
         {
             throw new KeyNotFoundException($"Category with ID {categoryId} not found.");
         }
+
+        var deletedCategory =
+            ProductCategoryMapper.ToEntities(await _repository.DeleteProductCategoryAsync(categoryId));
         
-        return await _repository.DeleteProductCategoryAsync(categoryId);
+        _logger.LogInfo($"Deleted ProductCategory: {deletedCategory.Id}, {deletedCategory.Name}");
+        
+        return deletedCategory;
     }
     
     private static void UpdateCategoryFields(ProductCategory existingCategory, ProductCategory newCategory)
     {
-        existingCategory.Name = newCategory.Name;
-        existingCategory.Description = newCategory.Description;
+        if(!string.IsNullOrWhiteSpace(existingCategory.Name))
+            existingCategory.Name = newCategory.Name;
+        if(!string.IsNullOrWhiteSpace(existingCategory.Description))
+            existingCategory.Description = newCategory.Description;
     }
 }
